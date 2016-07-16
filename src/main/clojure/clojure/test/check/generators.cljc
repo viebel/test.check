@@ -321,23 +321,34 @@
               #(gen-pure (rose/fmap v %)))))
 
 (defn- such-that-helper
-  [max-tries pred gen tries-left rng size]
-  (if (zero? tries-left)
-    (throw (ex-info (str "Couldn't satisfy such-that predicate after "
-                         max-tries " tries.") {}))
-    (core/let [[r1 r2] (random/split rng)
-          value (call-gen gen r1 size)]
-      (if (pred (rose/root value))
-        (rose/filter pred value)
-        (recur max-tries pred gen (dec tries-left) r2 (inc size))))))
+  [pred gen {:keys [ex-fn max-tries]} rng size]
+  (loop [tries-left max-tries
+         rng rng
+         size size]
+    (if (zero? tries-left)
+      (throw (ex-fn pred gen max-tries))
+      (core/let [[r1 r2] (random/split rng)
+                 value (call-gen gen r1 size)]
+        (if (pred (rose/root value))
+          (rose/filter pred value)
+          (recur (dec tries-left) r2 (inc size)))))))
+
+(def ^:private
+  default-such-that-opts
+  {:ex-fn (fn [pred gen max-tries]
+            (ex-info (str "Couldn't satisfy such-that predicate after "
+                          max-tries " tries.")
+                     {:max-tries max-tries
+                      :pred pred
+                      :gen gen}))
+   :max-tries 10})
 
 (defn such-that
   "Create a generator that generates values from `gen` that satisfy predicate
   `pred`. Care is needed to ensure there is a high chance `gen` will satisfy
   `pred`. By default, `such-that` will try 10 times to generate a value that
   satisfies the predicate. If no value passes this predicate after this number
-  of iterations, a runtime exception will be throw. You can pass an optional
-  third argument to change the number of times tried. Note also that each
+  of iterations, a runtime exception will be thrown. Note also that each
   time such-that retries, it will increase the size parameter.
 
   Examples:
@@ -345,14 +356,32 @@
       ;; generate non-empty vectors of integers
       ;; (note, gen/not-empty does exactly this)
       (gen/such-that not-empty (gen/vector gen/int))
-  "
+
+  You can customize `such-that` by passing an optional third argument, which can
+  either be an integer representing the maximum number of times test.check
+  will try to generate a value matching the predicate, or a map:
+
+      :max-tries  positive integer, the maximum number of tries (default 10)
+      :ex-fn      a function of three arguments (pred, gen, and max-tries) that
+                  will be called if test.check cannot generate a matching value;
+                  should return an exception"
   ([pred gen]
    (such-that pred gen 10))
-  ([pred gen max-tries]
-   (assert (generator? gen) "Second arg to such-that must be a generator")
-   (make-gen
-     (fn [rand-seed size]
-       (such-that-helper max-tries pred gen max-tries rand-seed size)))))
+  ([pred gen max-tries-or-opts]
+   (core/let [opts (cond (integer? max-tries-or-opts)
+                         {:max-tries max-tries-or-opts}
+
+                         (map? max-tries-or-opts)
+                         max-tries-or-opts
+
+                         :else
+                         (throw (ex-info "Bad argument to such-that!" {:max-tries-or-opts
+                                                                       max-tries-or-opts})))
+              opts (merge default-such-that-opts opts)]
+     (assert (generator? gen) "Second arg to such-that must be a generator")
+     (make-gen
+      (fn [rand-seed size]
+        (such-that-helper pred gen opts rand-seed size))))))
 
 (defn not-empty
   "Modifies a generator so that it doesn't generate empty collections.

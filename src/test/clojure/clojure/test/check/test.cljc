@@ -295,6 +295,18 @@
     (testing "list"   (t (gen/list gen/int)   list?))
     (testing "map"    (t (gen/map gen/int gen/int) map?))))
 
+;; such-that
+;; --------------------------------------------------------------------------
+
+(deftest such-that-allows-customizing-exceptions
+  (is (thrown-with-msg? Exception #"Oh well!"
+                        (gen/generate
+                         (gen/such-that
+                          #(apply distinct? %)
+                          (gen/vector gen/boolean 5)
+                          {:ex-fn (fn [pred gen max-tries]
+                                    (throw (Exception. "Oh well!")))})))))
+
 ;; Distinct collections
 ;; --------------------------------------------------------------------------
 
