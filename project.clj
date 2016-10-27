@@ -7,19 +7,31 @@
   :source-paths ["src/main/clojure"]
   :test-paths ["src/test/clojure"]
   :jvm-opts ^:replace ["-Xmx512m" "-server"]
-  :profiles {:dev {:dependencies [[org.clojure/clojure "1.8.0"]
+  :profiles {:codox {:dependencies [[org.clojure/clojure "1.8.0"]
+                                    [org.clojure/clojurescript "1.9.293"]
+                                    [viebel/codox-klipse-theme "0.0.3"]]}
+             :dev {:dependencies [[org.clojure/clojure "1.8.0"]
                                   [org.clojure/clojurescript "1.9.293"]]}
              :self-host {:dependencies [[org.clojure/clojure "1.8.0"]
                                         [org.clojure/clojurescript "1.9.227"]]
                          :main clojure.main
                          :global-vars {*warn-on-reflection* false}}}
   :global-vars {*warn-on-reflection* true}
-  :plugins [[lein-codox "0.9.1"]
+  :plugins [[lein-codox "0.10.1"]
             [lein-cljsbuild "1.1.4"]]
   :codox {:namespaces [clojure.test.check
                        clojure.test.check.clojure-test
                        clojure.test.check.generators
-                       clojure.test.check.properties]}
+                       clojure.test.check.properties]
+          :metadata {:doc/format :markdown}
+          :themes [:default [:klipse {:klipse/selector ".clojure"
+                                      :klipse/explicit-load true
+                                      :klipse/external-libs  "https://raw.githubusercontent.com/clojure/test.check/master/src/main/clojure"
+                                      :klipse/require-statement "(ns my.test
+                                                                  (:require [clojure.test.check :as tc :refer [quick-check]]
+                                                                            [clojure.test.check.generators :as gen]
+                                                                            [clojure.test.check.properties :as prop :include-macros true]))"}]]
+          }
   :cljsbuild
   {:builds
    [{:id "node-dev"

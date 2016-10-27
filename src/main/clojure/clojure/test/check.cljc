@@ -69,12 +69,16 @@
 
     It will also be called on :complete, :shrink-step and :shrunk.
 
-  Examples:
+Examples:
 
-      (def p (for-all [a gen/pos-int] (> (* a a) a)))
+Check that the square of a positive number is always greater than itself:
 
-      (quick-check 100 p)
-      (quick-check 200 p
+    (def p (prop/for-all [a gen/pos-int] (> (* a a) a)))
+    (quick-check 100 p)
+
+Another example using `reporter-fn`:
+
+    (quick-check 200 p
                    :seed 42
                    :max-size 50
                    :reporter-fn (fn [m]
