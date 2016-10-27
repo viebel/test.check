@@ -19,7 +19,9 @@ the count of the input is preserved. Our test might look like:
 (require '[clojure.test.check :as tc])
 (require '[clojure.test.check.generators :as gen])
 (require '[clojure.test.check.properties :as prop])
+```
 
+```klipse
 (defn ascending?
   "clojure.core/sorted? doesn't do what we might expect, so we write our
   own function"
@@ -32,10 +34,12 @@ the count of the input is preserved. Our test might look like:
     (let [s (sort v)]
       (and (= (count v) (count s))
            (ascending? s)))))
+```
 
-;; test our property
+Let's test our property
+
+```klipse
 (tc/quick-check 100 property)
-;; => {:result true, :num-tests 100, :seed 1381894143051}
 ```
 
 What if we were to forget to actually sort our vector? The test will fail, and
@@ -43,15 +47,12 @@ then test.check will try and find 'smaller' inputs that still cause the test
 to fail. For example, the function might originally fail with input:
 `[5 4 2 2 2]`, but test.check will shrink this down to `[0 -1]` (or `[1 0]`).
 
-```clojure
+```klipse
 (def bad-property
   (prop/for-all [v (gen/vector gen/int)]
     (ascending? v)))
 
 (tc/quick-check 100 bad-property)
-;; => {:result false, :failing-size 7, :num-tests 8, :fail [[-2 4 -7 5 -2 7 -4]],
-;; =>  :shrunk {:total-nodes-visited 19, :depth 8, :result false,
-;; =>           :smallest [[0 -1]]}}
 ```
 
 This process of shrinking is done automatically, even for our more complex
@@ -68,24 +69,23 @@ generators, we can see them in practice with the `sample` function:
 
 ```clojure
 (require '[clojure.test.check.generators :as gen])
+```
 
+```klipse
 (gen/sample gen/int)
-;; => (0 1 -1 0 -1 4 4 2 7 1)
 ```
 
 we can ask for more samples:
 
-```clojure
+```klipse
 (gen/sample gen/int 20)
-;; => (0 1 1 0 2 -4 0 5 -7 -8 4 5 3 11 -9 -4 6 -5 -3 0)
 ```
 
 or get a lazy-seq of values:
 
 
-```clojure
+```klipse
 (take 1 (gen/sample-seq gen/int))
-;; => 0
 ```
 
 You may notice that as you ask for more values, the 'size' of the generated
@@ -99,23 +99,23 @@ Some generators take other generators as arguments. For example the `vector`
 and `list` generator:
 
 
-```clojure
+```klipse
 (gen/sample (gen/vector gen/nat))
-;; => ([] [] [1] [1] [] [] [5 6 6 2 0 1] [3 7 5] [2 0 0 6 2 5 8] [9 1 9 3 8 3 5])
+```
 
+```klipse
 (gen/sample (gen/list gen/boolean))
-;; => (() () (false) (false true false) (false true) (false true true true) (true) (false false true true) () (true))
+```
 
+```klipse
 (gen/sample (gen/map gen/keyword gen/boolean) 5)
-;; => ({} {:z false} {:k true} {:v8Z false} {:9E false, :3uww false, :2s true})
 ```
 
 Sometimes we'll want to create heterogeneous collections. The `tuple` generator
 allows us to to do this:
 
-```clojure
+```klipse
 (gen/sample (gen/tuple gen/nat gen/boolean gen/ratio))
-;; => ([0 false 0] [1 false 0] [0 false 2] [0 false -1/3] [1 true 2] [1 false 0] [2 false 3/5] [3 true -1] [3 true -5/3] [6 false 9/5])
 ```
 
 ### Generator combinators
@@ -131,9 +131,8 @@ natural numbers. We can create a set by calling `set` on a vector. So let's
 create a vector of natural numbers (using the `nat` generator), and then use
 `fmap` to call `set` on the values:
 
-```clojure
+```klipse
 (gen/sample (gen/fmap set (gen/vector gen/nat)))
-;; => (#{} #{1} #{1} #{3} #{0 4} #{1 3 4 5} #{0 6} #{3 4 5 7} #{0 3 4 5 7} #{1 5})
 ```
 
 Imagine you have a record, that has a convenience creation function, `foo`. You
@@ -146,9 +145,8 @@ can create random `foo`s by generating the types of the arguments to `foo` with
 wanted to generate non-empty lists, we can use `such-that` to filter out empty
 lists:
 
-```clojure
+```klipse
 (gen/sample (gen/such-that not-empty (gen/list gen/boolean)))
-;; => ((true) (true) (false) (true false) (false) (true) (false false true true) (false) (true) (false))
 ```
 
 #### bind
@@ -159,14 +157,13 @@ and then choose a random element from it, and return both the vector and the
 random element. `bind` takes a generator, and a function that takes a value
 from that generator, and creates a new generator.
 
-```clojure
+```klipse
 (def keyword-vector (gen/such-that not-empty (gen/vector gen/keyword)))
 (def vec-and-elem
   (gen/bind keyword-vector
             (fn [v] (gen/tuple (gen/elements v) (gen/return v)))))
 
 (gen/sample vec-and-elem 4)
-;; => ([:va [:va :b4]] [:Zu1 [:w :Zu1]] [:2 [:2]] [:27X [:27X :KW]])
 ```
 
 This allows us to build quite sophisticated generators.
@@ -176,17 +173,14 @@ This allows us to build quite sophisticated generators.
 Let's go through an example of generating random values of our own
 `defrecord`s. Let's create a simple user record:
 
-```clojure
+```klipse
 (defrecord User [user-name user-id email active?])
+```
 
-;; recall that a helper function is automatically generated
-;; for us
+Recall that a helper function is automatically generated for us
 
+```klipse
 (->User "reiddraper" 15 "reid@example.com" true)
-;; #user.User{:user-name "reiddraper",
-;;            :user-id 15,
-;;            :email "reid@example.com",
-;;            :active? true}
 ```
 
 We can use the `->User` helper function to construct our user. First, let's
@@ -196,7 +190,7 @@ construct our own simple email generator, and we'll use booleans to denote
 whether the user account is active. Let's write a simple email address
 generator:
 
-```clojure
+```klipse
 (def domain (gen/elements ["gmail.com" "hotmail.com" "computer.org"]))
 (def email-gen
   (gen/fmap (fn [[name domain-name]]
@@ -204,13 +198,12 @@ generator:
             (gen/tuple (gen/not-empty gen/string-alphanumeric) domain)))
 
 (last (gen/sample email-gen))
-;; => "CW6161Q6@hotmail.com"
 ```
 
 To put it all together, we'll use `fmap` to call our record constructor, and
 `tuple` to create a vector of the arguments:
 
-```clojure
+```klipse
 (def user-gen
   (gen/fmap (partial apply ->User)
             (gen/tuple (gen/not-empty gen/string-alphanumeric)
@@ -219,10 +212,6 @@ To put it all together, we'll use `fmap` to call our record constructor, and
                        gen/boolean)))
 
 (last (gen/sample user-gen))
-;; => #user.User{:user-name "kWodcsE2",
-;;               :user-id 1,
-;;               :email "r2ed3VE@computer.org",
-;;               :active? true}
 ```
 
 ### Recursive generators
@@ -240,10 +229,9 @@ generator. We'll start with a simple example, and then move into something more
 complex. First, let's generate a nested vector of booleans. So our compound
 generator will be `gen/vector` and our scalar will be `gen/boolean`:
 
-```clojure
+```klipse
 (def nested-vector-of-boolean (gen/recursive-gen gen/vector gen/boolean))
 (last (gen/sample nested-vector-of-boolean 20))
-;; => [[true] [false true true] [false]]
 ```
 
 Now, let's make our own, JSON-like generator. We'll allow `gen/list` and
@@ -252,18 +240,13 @@ types. Since `recursive-gen` only accepts one of each type of generator, we'll
 combine our compound types with a simple function, and the two scalars with
 `gen/one-of`.
 
-```clojure
+```klipse
 (def compound (fn [inner-gen]
                   (gen/one-of [(gen/list inner-gen)
                                (gen/map inner-gen inner-gen)])))
 (def scalars (gen/one-of [gen/int gen/boolean]))
 (def my-json-like-thing (gen/recursive-gen compound scalars))
 (last (gen/sample my-json-like-thing 20))
-;; =>
-;; (()
-;;  {{4 -11, 1 -19} (false),
-;;  {} {1 6},
-;;  (false false) {true -3, false false, -7 1}})
 ```
 
 And we see we got a list whose first element is the empty the list. The second

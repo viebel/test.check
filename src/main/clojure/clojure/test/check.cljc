@@ -73,17 +73,21 @@
 
     It will also be called on :complete, :shrink-step and :shrunk.
 
-  Examples:
-
-      (def p (for-all [a gen/pos-int] (> (* a a) a)))
+~~~klipse
+    (def p (for-all [a gen/pos-int] (> (* a a) a)))
 
       (quick-check 100 p)
+~~~
+
+~~~klipse
       (quick-check 200 p
                    :seed 42
                    :max-size 50
                    :reporter-fn (fn [m]
                                   (when (= :failure (:type m))
-                                    (println \"Uh oh...\"))))"
+                                    (println \"Uh oh...\"))))
+~~~
+  "
   [num-tests property & {:keys [seed max-size reporter-fn]
                          :or {max-size 200, reporter-fn (constantly nil)}}]
   (let [[created-seed rng] (make-rng seed)

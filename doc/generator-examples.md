@@ -11,80 +11,69 @@ skip over some of the built-in, basic generators.
 
 ## Integers 5 through 9, inclusive
 
-```clojure
+```klipse
 (def five-through-nine (gen/choose 5 9))
 (gen/sample five-through-nine)
-;; => (6 5 9 5 7 7 6 9 7 9)
 ```
 
 ## A random element from a vector
 
-```clojure
+```klipse
 (def languages (gen/elements ["clojure" "haskell" "erlang" "scala" "python"]))
 (gen/sample languages)
-;; => ("clojure" "scala" "clojure" "haskell" "clojure" "erlang" "erlang"
-;; =>  "erlang" "haskell" "python")
 ```
 
 ## An integer or nil
 
-```clojure
+```klipse
 (def int-or-nil (gen/one-of [gen/int (gen/return nil)]))
 (gen/sample int-or-nil)
-;; => (nil 0 -2 nil nil 3 nil nil 4 2)
 ```
 
 ## An integer 90% of the time, nil 10%
 
-```clojure
+```klipse
 (def mostly-ints (gen/frequency [[9 gen/int] [1 (gen/return nil)]]))
 (gen/sample mostly-ints)
-;; => (0 -1 nil 0 -2 0 6 -6 8 7)
 ```
 
 ## Even, positive integers
 
-```clojure
+```klipse
 (def even-and-positive (gen/fmap #(* 2 %) gen/pos-int))
 (gen/sample even-and-positive 20)
-;; => (0 0 2 0 8 6 4 12 4 18 10 0 8 2 16 16 6 4 10 4)
 ```
 
 ## Powers of two
 
-```clojure
-;; generate exponents with gen/s-pos-int (strictly positive integers),
-;; and then apply the lambda to them
+Let's generate exponents with `gen/s-pos-int` (strictly positive integers), and then apply the lambda to them:
+
+```klipse
 (def powers-of-two (gen/fmap #(int (Math/pow 2 %)) gen/s-pos-int))
 (gen/sample powers-of-two)
-;; => (2 2 8 16 16 64 16 2 4 4)
 ```
 
 ## Sorted seq of integers
 
-```clojure
-;; apply the sort function to each generated vector
+Here, we apply the sort function to each generated vector:
+
+```klipse
 (def sorted-vec (gen/fmap sort (gen/vector gen/int)))
 (gen/sample sorted-vec)
-;; => (() (-1) (-2 -2) (-1 2 3) (-1 2 4) (-3 2 3 3 4) (1)
-;; => (-4 0 1 3 4 6) (-5 -4 -1 0 2 8) (1))
 ```
 
 ## An integer and a boolean
 
-```clojure
+```klipse
 (def int-and-boolean (gen/tuple gen/int gen/boolean))
 (gen/sample int-and-boolean)
-;; => ([0 false] [0 true] [0 true] [3 true] [-3 false]
-;; =>  [0 true] [4 true] [0 true] [-2 true] [-9 false])
 ```
 
 ## Any number but 5
 
-```clojure
+```klipse
 (def anything-but-five (gen/such-that #(not= % 5) gen/int))
 (gen/sample anything-but-five)
-;; => (0 0 -2 1 -3 1 -4 7 -1 6)
 ```
 
 It's important to note that `such-that` should only be used for predicates that
@@ -95,20 +84,10 @@ unlikely to happen randomly. If you want sorted vectors, just sort them using
 
 ## A vector and a random element from it
 
-```clojure
+```klipse
 (def vector-and-elem (gen/bind (gen/not-empty (gen/vector gen/int))
                                #(gen/tuple (gen/return %) (gen/elements %))))
 (gen/sample vector-and-elem)
-;; =>([[-1] -1]
-;; => [[0] 0]
-;; => [[-1 -1] -1]
-;; => [[2 0 -2] 2]
-;; => [[0 1 1] 0]
-;; => [[-2 -3 -1 1] -1]
-;; => [[-1 2 -5] -5]
-;; => [[5 -7 -3 7] 5]
-;; => [[-1 2 2] 2]
-;; => [[-8 7 -3 -2 -6] -3])
 ```
 
 `gen/bind` and `gen/fmap` are similar: they're both binary functions that take
