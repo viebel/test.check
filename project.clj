@@ -7,9 +7,7 @@
   :source-paths ["src/main/clojure"]
   :test-paths ["src/test/clojure"]
   :jvm-opts ^:replace ["-Xmx512m" "-server"]
-  :profiles {:codox {:dependencies [[org.clojure/clojure "1.8.0"]
-                                    [org.clojure/clojurescript "1.9.293"]
-                                    [viebel/codox-klipse-theme "0.0.3"]]}
+  :profiles {:codox {:dependencies [[viebel/codox-klipse-theme "0.0.3"]]}
              :dev {:dependencies [[org.clojure/clojure "1.8.0"]
                                   [org.clojure/clojurescript "1.9.293"]]}
              :self-host {:dependencies [[org.clojure/clojure "1.8.0"]
@@ -26,7 +24,7 @@
           :metadata {:doc/format :markdown}
           :themes [:default [:klipse {:klipse/selector ".clojure"
                                       :klipse/explicit-load true
-                                      :klipse/external-libs  "https://raw.githubusercontent.com/clojure/test.check/master/src/main/clojure"
+                                      :klipse/external-libs  "src/main/clojure"
                                       :klipse/require-statement "(ns my.test
                                                                   (:require [clojure.test.check :as tc :refer [quick-check]]
                                                                             [clojure.test.check.generators :as gen]
