@@ -22,7 +22,7 @@
                        clojure.test.check.generators
                        clojure.test.check.properties]
           :metadata {:doc/format :markdown}
-          :themes [:default [:klipse {:klipse/selector ".clojure"
+          :themes [:default [:klipse {:klipse/selector ".clojure, .hljs"
                                       :klipse/explicit-load true
                                       :klipse/external-libs  "src/main/clojure"
                                       :klipse/require-statement "(ns my.test
